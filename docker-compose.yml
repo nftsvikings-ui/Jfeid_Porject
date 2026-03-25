@@ -1,0 +1,74 @@
+﻿version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: jfeid_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./.env:/var/www/.env:ro
+      - ./public:/var/www/public
+      - ./app:/var/www/app
+      - ./bootstrap:/var/www/bootstrap
+      - bootstrap_cache:/var/www/bootstrap/cache
+      - ./config:/var/www/config
+      - ./database:/var/www/database
+      - ./resources:/var/www/resources
+      - ./routes:/var/www/routes
+      - storage:/var/www/storage
+      - ./artisan:/var/www/artisan
+      - ./composer.json:/var/www/composer.json
+      - ./composer.lock:/var/www/composer.lock
+    networks:
+      - jfeid_network
+    depends_on:
+      - db
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=True
+      - APP_URL=https://nookapp.online
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=jfeid_db
+      - DB_USERNAME=jfeid_user
+      - DB_PASSWORD=password
+
+  db:
+    image: postgres:16
+    container_name: jfeid_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jfeid_db
+      POSTGRES_USER: jfeid_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    networks:
+      - jfeid_network
+
+  nginx:
+    image: nginx:latest
+    container_name: jfeid_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./public:/var/www/public
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - app
+    networks:
+      - jfeid_network
+
+networks:
+  jfeid_network:
+    driver: bridge
+
+volumes:
+  dbdata:
+  storage:
+  bootstrap_cache:

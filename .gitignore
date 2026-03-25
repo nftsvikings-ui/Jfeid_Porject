@@ -1,0 +1,40 @@
+*.log
+.DS_Store
+
+/vendor
+/node_modules
+/public/storage
+/storage/*.key
+
+/.idea
+/.vscode
+/.phpunit.result.cache
+/homestead.yaml
+/homestead.json
+
+/.phpstorm.meta.php
+
+/public/build
+/public/hot
+# Laravel specific
+/storage/app/public
+/storage/debugbar
+/storage/framework/cache/data
+/storage/framework/sessions
+/storage/framework/testing
+/storage/framework/views
+
+# Logs
+/storage/logs/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Composer files
+
+
+# NPM/Yarn files
+npm-debug.log
+yarn-error.log
+

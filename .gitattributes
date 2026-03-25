@@ -1,0 +1,39 @@
+# ===== Laravel .gitattributes =====
+
+# Normalize line endings to LF
+* text=auto
+
+# Force LF for PHP and config files
+*.php text eol=lf
+*.blade.php text eol=lf
+*.env.example text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.css text eol=lf
+*.scss text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.vue text eol=lf
+
+# Binary files (no diffing or text normalization)
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.otf binary
+*.zip binary
+*.gz binary
+*.mp4 binary
+
+# Prevent .env from ever being committed
+.env export-ignore
+
+# Composer files
+/composer.lock -diff -merge -text

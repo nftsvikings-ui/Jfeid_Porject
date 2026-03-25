@@ -1,0 +1,185 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Vehicle;
+use App\Traits\HideTimestampsTrait;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+
+class VehicleController extends Controller
+{
+    use HideTimestampsTrait;
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        // Fetch all vehicles associated with the authenticated user
+        $vehicle = Vehicle::all();
+
+        // Return the vehicles as a JSON response
+        return response()->json([
+            'status' => 'success',
+            'data' => $vehicle
+        ]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create() {}
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        // Validate the request data
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'type' => 'required|string|max:255',
+        ]);
+
+        $vehicle = Vehicle::create([ 
+            'user_id' => $request->user_id,
+            'type' => $request->type,
+        ]);
+
+        // Return the created vehicle as a JSON response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Vehicle created successfully.',
+            'data' => $vehicle
+        ], 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+{
+    $vehicle = Vehicle::with(['user', 'maintenanceRecords'])->find($id);
+
+    if (!$vehicle) {
+        return response()->json(['error' => 'Vehicle not found'], 404);
+    }
+
+    $this->hideTimestampsRecursively($vehicle);
+
+    $grouped = [];
+
+    $vehicle->maintenanceRecords->each(function ($record) use (&$grouped) {
+        $relation = match ($record->type) {
+            'battery_service' => 'batteryService',
+            'wheel_service' => 'wheelService',
+            'gear_oil_change' => 'gearOilChange',
+            'steering_oil_change' => 'steeringOilChange',
+            'transmission_oil_change' => 'transmissionOilChange',
+            'differential_oil_change' => 'differentialOilChange',
+            'oil_change' => 'oilChange',
+            default => null,
+        };
+
+        $related = null;
+        if ($relation) {
+            $record->load($relation);
+            $related = $record->{$relation};
+            if ($related) {
+                $related->makeHidden(['created_at', 'updated_at']);
+            }
+        }
+
+        $date = $record->maintenance_date
+            ? Carbon::parse($record->maintenance_date)->toDateString()
+            : 'no-date';
+
+        if (!isset($grouped[$date])) {
+            $grouped[$date] = [
+                'date' => $date,
+                'maintenance' => []
+            ];
+        }
+
+        // كل سجل في التاريخ الخاص به (لنفس النوع أو غيره)
+        $grouped[$date]['maintenance'][$record->type] = $related ?: (object)[];
+    });
+
+    ksort($grouped);
+
+    return response()->json([
+        'status' => 'success',
+        'data' => [
+            'id' => $vehicle->id,
+            'user_id' => $vehicle->user_id,
+            'type' => $vehicle->type,
+            'user' => $vehicle->user,
+            'maintenance_records' => array_values($grouped)
+        ]
+    ]);
+}
+
+
+
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        // Validate the request data
+        $request->validate([
+            'type' => 'required|string|max:255',
+        ]);
+
+        // Find the vehicle by ID
+        $vehicle = Vehicle::find($id);
+
+        // Check if the vehicle exists
+        if (!$vehicle) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Vehicle not found.'
+            ], 404);
+        }
+
+        // Update the vehicle's type
+        $vehicle->update([
+            'type' => $request->type,
+        ]);
+
+        // Return the updated vehicle as a JSON response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Vehicle updated successfully.',
+            'data' => $vehicle
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        // Find the vehicle by ID
+        $vehicle = Vehicle::find($id);
+
+        // Check if the vehicle exists
+        if (!$vehicle) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Vehicle not found.'
+            ], 404);
+        }
+
+        // Delete the vehicle
+        $vehicle->delete();
+
+        // Return a success response
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Vehicle deleted successfully.'
+        ]);
+    }
+}
