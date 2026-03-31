@@ -8,7 +8,7 @@ projects:
     - type: web
       name: backend
       runtime: docker
-      repo: https://github.com/alikanbar988/Jfeid-project
+      repo: https://github.com/nftsvikings-ui/Jfeid_Porject
       plan: starter
       envVars:
       - key: FIREBASE_CREDENTIALS
@@ -103,9 +103,6 @@ projects:
       healthCheckPath: /
       dockerContext: .
       dockerfilePath: ./Dockerfile.render
-      domains:
-      - www.jfeidtrading.online
-      - jfeidtrading.online
       disk:
         name: disk
         mountPath: /var/www/storage
