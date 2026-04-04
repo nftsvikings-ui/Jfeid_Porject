@@ -29,6 +29,7 @@ WORKDIR /var/www
 COPY . /var/www
 
 RUN chown -R www-data:www-data /var/www \
+ && mkdir -p storage/framework/views \
  && COMPOSER_MEMORY_LIMIT=-1 COMPOSER_PROCESS_TIMEOUT=2000 composer install --no-dev --optimize-autoloader \
  && php artisan livewire:publish --assets \
  && php artisan filament:assets \
