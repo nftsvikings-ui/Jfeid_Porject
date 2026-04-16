@@ -8,7 +8,6 @@ use App\Http\Controllers\TermsConditionsController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
-use Filament\Pages\Auth\Login as LoginController;
 
 if (env('RENDER_DUMMY', false)) {
     Route::get('/', function () {
@@ -25,10 +24,7 @@ if (env('RENDER_DUMMY', false)) {
 Route::get('/', function () {
     return view('welcome');
 });
-// Web Routes
-Route::prefix('Jfeid')->group(function () { 
-      Route::post('login', [LoginController::class, 'store']);
-});
+
 // Reset Password
 Route::get('/password-reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset.form');
 Route::post('/password-reset', [ResetPasswordController::class, 'reset'])->name('password.update');
