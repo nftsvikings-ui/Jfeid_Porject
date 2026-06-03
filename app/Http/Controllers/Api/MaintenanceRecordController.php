@@ -13,8 +13,17 @@ class MaintenanceRecordController extends Controller
      */
     public function index(Request $request)
     {
-        // Fetch all maintenance records associated with the authenticated user
-        $maintenanceRecord =  MaintenanceRecord::with('vehicle', 'batteryService')->get();
+        // Fetch all maintenance records with all related services to prevent null issues in mobile app
+        $maintenanceRecord = MaintenanceRecord::with([
+            'vehicle',
+            'batteryService',
+            'oilChange',
+            'steeringOilChange',
+            'wheelService',
+            'gearOilChange',
+            'transmissionOilChange',
+            'differentialOilChange'
+        ])->get();
 
         // Return the maintenance records as a JSON response
         return response()->json([
@@ -65,8 +74,17 @@ class MaintenanceRecordController extends Controller
      */
     public function show($id)
     {
-        // Fetch the specific maintenance record by ID
-        $maintenanceRecord =  MaintenanceRecord::findOrFail($id);
+        // Fetch the specific maintenance record with all relationships (for Flutter type safety)
+        $maintenanceRecord = MaintenanceRecord::with([
+            'vehicle',
+            'batteryService',
+            'oilChange',
+            'steeringOilChange',
+            'wheelService',
+            'gearOilChange',
+            'transmissionOilChange',
+            'differentialOilChange'
+        ])->findOrFail($id);
        // $maintenanceRecord->makeHidden(['created_at', 'updated_at']);
 //$maintenanceRecord->user->makeHidden(['created_at', 'updated_at']);
         // Return the maintenance record as a JSON response

@@ -64,8 +64,8 @@ class AuthController extends Controller
         if ($user && Hash::check($request->password, $user->password)) {
             $access_token = $user->createToken("authToken")->plainTextToken;
 
-            // get first vehicle id
-            $vehicle_id = $user->vehicles()->first()?->id;
+            // get first vehicle id - default to 0 if user has no vehicles (for mobile app type safety)
+            $vehicle_id = $user->vehicles()->first()?->id ?? 0;
 
             return response()->json([
                 'success' => true,

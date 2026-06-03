@@ -102,8 +102,8 @@ class VehicleController extends Controller
             ];
         }
 
-        // كل سجل في التاريخ الخاص به (لنفس النوع أو غيره)
-        $grouped[$date]['maintenance'][$record->type] = $related ?: (object)[];
+        // كل سجل في التاريخ الخاص به (لنفس النوع أو غيره) - Return null explicitly instead of empty object for Flutter type safety
+        $grouped[$date]['maintenance'][$record->type] = $related;
     });
 
     ksort($grouped);
