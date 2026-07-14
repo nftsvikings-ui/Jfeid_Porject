@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+    container_name: jfeid_app_local
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./.env:/var/www/.env:ro
+      - ./public:/var/www/public
+      - ./app:/var/www/app
+      - ./bootstrap:/var/www/bootstrap
+      - bootstrap_cache:/var/www/bootstrap/cache
+      - ./config:/var/www/config
+      - ./database:/var/www/database
+      - ./resources:/var/www/resources
+      - ./routes:/var/www/routes
+      - storage:/var/www/storage
+      - ./artisan:/var/www/artisan
+      - ./composer.json:/var/www/composer.json
+      - ./composer.lock:/var/www/composer.lock
+    networks:
+      - jfeid_network_local
+    depends_on:
+      - db
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - APP_URL=http://localhost
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=jfeid_db
+      - DB_USERNAME=jfeid_user
+      - DB_PASSWORD=password
+      - DB_SSLMODE=disable
+
+  db:
+    image: postgres:16
+    container_name: jfeid_db_local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: jfeid_db
+      POSTGRES_USER: jfeid_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - dbdata_local:/var/lib/postgresql/data
+    networks:
+      - jfeid_network_local
+
+  nginx:
+    image: nginx:latest
+    container_name: jfeid_nginx_local
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/conf.d/default.local.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/public
+    depends_on:
+      - app
+    networks:
+      - jfeid_network_local
+
+networks:
+  jfeid_network_local:
+    driver: bridge
+
+volumes:
+  dbdata_local:
+  storage:
+  bootstrap_cache:

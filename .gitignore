@@ -38,3 +38,8 @@ Thumbs.db
 npm-debug.log
 yarn-error.log
 
+# Environment files with secrets
+.env
+.env.local
+.env.*.local
+

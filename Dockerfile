@@ -27,6 +27,9 @@ WORKDIR /var/www
 
 # نسخ ملفات المشروع
 COPY . /var/www
+COPY ./docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
+ && chmod +x /usr/local/bin/entrypoint.sh
 
 # صلاحيات الملفات
 RUN chown -R www-data:www-data /var/www
@@ -38,4 +41,5 @@ RUN git config --global --add safe.directory /var/www
 RUN COMPOSER_MEMORY_LIMIT=-1 COMPOSER_PROCESS_TIMEOUT=2000 composer install --no-dev --optimize-autoloader
 
 EXPOSE 9000
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["php-fpm"]
