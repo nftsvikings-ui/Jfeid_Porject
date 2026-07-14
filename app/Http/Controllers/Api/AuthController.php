@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
@@ -21,6 +22,7 @@ class AuthController extends Controller
             "phonenumber" => "required|string",
             "password" => "required|min:3",
             "carplate" => "nullable|string",
+            "vehicle_type" => "nullable|string",
         ]);
 
         // create new user and save it to database
@@ -32,6 +34,13 @@ class AuthController extends Controller
             'carplate' => $request->carplate,
         ]);
 
+        // create the user's vehicle so login never returns vehicle_id 0.
+        // uses the vehicle_type sent from the app, falling back to a default.
+        $vehicle = Vehicle::create([
+            'user_id' => $user->id,
+            'type'    => $request->vehicle_type ?: 'My Vehicle',
+        ]);
+
 
         // Check if the request is coming from a Flutter application
         if ($request->header('User-Agent') === 'Flutter') {
@@ -39,7 +48,8 @@ class AuthController extends Controller
             return response()->json([
                 'status' => '201',
                 'message' => 'User has been created successfully.',
-                'token' => $access_token
+                'token' => $access_token,
+                'vehicle_id' => $vehicle->id
             ], 201);
         } else {
             return response()->json([
