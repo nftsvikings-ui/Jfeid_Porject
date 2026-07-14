@@ -14,10 +14,12 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libonig-dev \
     zip \
- && docker-php-ext-install intl pdo pdo_pgsql mbstring zip \
- && docker-php-ext-enable intl zip \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+    nodejs \
+    npm \
+    && docker-php-ext-install intl pdo pdo_pgsql mbstring zip \
+    && docker-php-ext-enable intl zip \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 
 # تثبيت Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -39,6 +41,9 @@ RUN git config --global --add safe.directory /var/www
 
 # تثبيت dependencies Laravel
 RUN COMPOSER_MEMORY_LIMIT=-1 COMPOSER_PROCESS_TIMEOUT=2000 composer install --no-dev --optimize-autoloader
+
+# تثبيت Node dependencies وبناء Vite assets
+RUN npm install && npm run build
 
 EXPOSE 9000
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
