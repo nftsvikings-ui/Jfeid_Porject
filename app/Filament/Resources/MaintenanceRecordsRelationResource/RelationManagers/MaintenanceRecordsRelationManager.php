@@ -121,7 +121,7 @@ class MaintenanceRecordsRelationManager extends RelationManager
                     ->label('Quantity')
                     ->numeric()
                     ->visible(fn($get) => $get('type') === 'steering_oil_change')
-                    ->required(fn($get) => $get('type') === 'steering_o il_change'),
+                    ->required(fn($get) => $get('type') === 'steering_oil_change'),
             ])->columns(2);
     }
     public function table(Table $table): Table

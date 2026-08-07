@@ -3,7 +3,10 @@
 namespace App\Filament\Resources;
 
 use App\Models\User;
+use App\Models\Vehicle;
 use Filament\Tables;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Forms\Form;
 use Filament\Tables\Table;
 use Filament\Resources\Resource;
@@ -38,9 +41,34 @@ class MaintenanceRecordResource extends Resource
     {
         return $form
             ->schema([
+                // pick the customer first; the vehicle list below is scoped to them.
+                // not a real column on maintenance_records, so it is never saved.
+                Select::make('user_id')
+                    ->label('User')
+                    ->options(fn() => User::orderBy('name')->pluck('name', 'id'))
+                    ->searchable()
+                    ->required()
+                    ->live()
+                    ->dehydrated(false)
+                    ->afterStateHydrated(function (Select $component, $state, $record) {
+                        // on edit, derive the user from the record's vehicle
+                        if (blank($state) && $record?->vehicle) {
+                            $component->state($record->vehicle->user_id);
+                        }
+                    })
+                    ->afterStateUpdated(fn(Set $set) => $set('vehicle_id', null)),
+
                 Select::make('vehicle_id')
-                    ->relationship('vehicle', 'type')
                     ->label('Vehicle')
+                    ->options(fn(Get $get) => blank($get('user_id'))
+                        ? []
+                        : Vehicle::where('user_id', $get('user_id'))
+                            ->orderBy('id')
+                            ->get()
+                            ->mapWithKeys(fn(Vehicle $vehicle) => [
+                                $vehicle->id => ($vehicle->type ?: 'Vehicle') . ' (#' . $vehicle->id . ')',
+                            ]))
+                    ->placeholder('Select a user first')
                     ->searchable()
                     ->required(),
 
@@ -145,7 +173,7 @@ class MaintenanceRecordResource extends Resource
                     ->label('Quantity')
                     ->numeric()
                     ->visible(fn($get) => $get('type') === 'steering_oil_change')
-                    ->required(fn($get) => $get('type') === 'steering_o il_change'),
+                    ->required(fn($get) => $get('type') === 'steering_oil_change'),
           
    DateTimePicker::make('maintenance_date')
                     ->label('Maintenance Date')
